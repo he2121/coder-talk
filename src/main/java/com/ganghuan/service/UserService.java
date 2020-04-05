@@ -1,0 +1,141 @@
+package com.ganghuan.service;
+
+import com.ganghuan.mapper.LoginTicketMapper;
+import com.ganghuan.mapper.UserMapper;
+import com.ganghuan.pojo.LoginTicket;
+import com.ganghuan.pojo.User;
+import com.ganghuan.util.RandomUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+
+@Service
+public class UserService {
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
+
+    public User findUserById(int id){
+        return userMapper.selectById(id);
+    }
+
+    public User findUserByEmail(String email) {
+        return userMapper.selectByEmail(email);
+    }
+
+
+
+    public Map<String, Object> register(User user,String code,String trueCode) {
+        Map<String, Object> map = new HashMap<>();
+
+        // 空值处理
+        if (user == null) {
+            throw new IllegalArgumentException("参数不能为空!");
+        }
+        if (StringUtils.isBlank(user.getUsername())) {
+            map.put("usernameMsg", "账号不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(user.getPassword())) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(user.getEmail())) {
+            map.put("emailMsg", "邮箱不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(code)) {
+            map.put("codeMsg", "验证码不能为空!");
+            return map;
+        }
+
+        // 验证账号
+        User u = userMapper.selectByName(user.getUsername());
+        if (u != null) {
+            map.put("usernameMsg", "该账号已存在!");
+            return map;
+        }
+
+        // 验证邮箱
+        u = userMapper.selectByEmail(user.getEmail());
+        if (u != null) {
+            map.put("emailMsg", "该邮箱已被注册!");
+            return map;
+        }
+
+        // 验证邮箱注册验证码
+        if(!StringUtils.equals(code,trueCode)){
+            map.put("codeMsg", "验证码错误!");
+            return map;
+        }
+
+        // 注册用户
+
+        user.setPassword(RandomUtil.md5(user.getPassword()));
+        user.setType(0);
+        user.setCreateTime(new Date());
+        userMapper.insertUser(user);
+        return map;
+    }
+
+
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        Map<String, Object> map = new HashMap<>();
+
+        // 空值处理
+        if (StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+
+        // 验证账号
+        User user = userMapper.selectByName(username);
+        if (user == null) {
+            map.put("usernameMsg", "该账号不存在!");
+            return map;
+        }
+
+        // 验证密码
+        password = RandomUtil.md5(password);
+        if (!user.getPassword().equals(password)) {
+            map.put("passwordMsg", "密码不正确!");
+            return map;
+        }
+
+        // 生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(RandomUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        map.put("ticket", loginTicket.getTicket());
+        return map;
+    }
+
+    public void logout(String ticket) {
+        loginTicketMapper.updateStatus(ticket,1);
+    }
+
+    public LoginTicket findLoginTicket(String ticket) {
+        return loginTicketMapper.selectByTicket(ticket);
+    }
+
+    public int updateHeader(int userId, String headerUrl) {
+        return userMapper.updateHeader(userId, headerUrl);
+    }
+}
+
+

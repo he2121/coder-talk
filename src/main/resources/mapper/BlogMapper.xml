@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ganghuan.mapper.BlogMapper">
+
+
+    <select id="selectBlogs" resultType="Blog">
+        select id, user_id, title, content, status, create_time, update_time, comment_count, view_count, score
+        from blog
+        where status != 2
+        <if test="userId!=0">
+            and user_id = #{userId}
+        </if>
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectBlogRows" resultType="int">
+        select count(id)
+        from blog
+        where status != 2
+        <if test="userId!=0">
+            and user_id = #{userId}
+        </if>
+    </select>
+
+    <insert id="insertBlog" parameterType="Blog">
+        insert into `blog`(user_id, title, content, create_time, update_time)
+        values (#{userId},#{title},#{content},#{createTime},#{updateTime})
+    </insert>
+
+    <select id="selectBlogById" resultType="Blog">
+    select id, user_id, title, content, status, create_time, update_time, comment_count, view_count, score
+    from blog
+    where id=#{id}
+    </select>
+
+    <update id="updateCommentCount">
+        update blog set comment_count = #{commentCount} where id = #{id}
+    </update>
+
+</mapper>

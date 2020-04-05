@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>发布博客</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/editormd.min.css">
+</head>
+<body>
+
+<div th:insert="common/header::header"></div>
+<form method="post" th:action="@{/blog/add}">
+    <div class="center-block" style="width: 600px;margin-left: auto;margin-right: auto">
+        <input type="text" class="form-control text-center center-block" th:value="${param.title}"
+               id="title" name="title" placeholder="请输入博客标题" required style="font-size: 20px;height: 45px;font-weight: bold">
+    </div>
+    <br>
+
+    <div class="form-group">
+        <div id="content">
+            <!-- Tips: Editor.md can auto append a `<textarea>` tag -->
+            <textarea name="content" style="display:none;" th:value="${param.content}" class="form-control">### 你好啊</textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="text-right">
+            <button type="submit" class="btn btn-info form-control" style="width: 400px;height: 35px">发布</button>
+        </div>
+    </div>
+</form>
+
+<div th:insert="common/footer::footer"></div>
+<script src="/js/jquery-3.4.1.js" type="text/javascript"></script>
+<script src="/js/bootstrap.min.js" type="text/javascript"></script>
+<script src="/js/editormd.min.js" type="text/javascript"></script>
+<script src="/js/lib/marked.min.js" type="text/javascript"></script>
+<script src="/js/lib/prettify.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+    $(function() {
+        var editor = editormd("content", {
+            width: "100%",
+            height: 700,
+            // markdown: "xxxx",     // dynamic set Markdown text
+            path: "/js/lib/"  // Autoload modules mode, codemirror, marked... dependents libs path
+        });
+    });
+</script>
+</body>
+</html>
