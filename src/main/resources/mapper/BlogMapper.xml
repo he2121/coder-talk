@@ -6,7 +6,7 @@
 
 
     <select id="selectBlogs" resultType="Blog">
-        select id, user_id, title, content, status, create_time, update_time, comment_count, view_count, score
+        select id, user_id, title, content, status, create_time, update_time, comment_count, score
         from blog
         where status != 2
         <if test="userId!=0">
@@ -31,7 +31,7 @@
     </insert>
 
     <select id="selectBlogById" resultType="Blog">
-    select id, user_id, title, content, status, create_time, update_time, comment_count, view_count, score
+    select id, user_id, title, content, status, create_time, update_time, comment_count, score
     from blog
     where id=#{id}
     </select>
@@ -39,5 +39,25 @@
     <update id="updateCommentCount">
         update blog set comment_count = #{commentCount} where id = #{id}
     </update>
+
+    <select id="selectCircleBlogs" resultType="Blog">
+        select id, user_id, title, content, status, create_time, update_time, comment_count, score
+        from blog
+        where status != 2 and user_id in
+         <foreach collection="userIds" index="index" item="item" open="(" separator="," close=")">
+             #{item}
+         </foreach>
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectCircleBlogRows" resultType="int">
+        select count(id)
+        from blog
+        where status != 2 and user_id in
+        <foreach collection="userIds" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
 
 </mapper>

@@ -7,9 +7,7 @@ import com.ganghuan.dto.Page;
 import com.ganghuan.pojo.Blog;
 import com.ganghuan.pojo.Comment;
 import com.ganghuan.pojo.User;
-import com.ganghuan.service.BlogService;
-import com.ganghuan.service.CommentService;
-import com.ganghuan.service.UserService;
+import com.ganghuan.service.*;
 import com.ganghuan.util.ConstantUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -25,7 +23,8 @@ import java.util.*;
 @Controller
 @RequestMapping("/blog")
 public class BlogController {
-
+    @Autowired
+    private LikeService likeService;
     @Autowired
     private UserService userService;
 
@@ -38,10 +37,13 @@ public class BlogController {
     @Autowired
     private LoginHold loginHold;
 
+    @Autowired
+    private ViewCountService viewCountService;
+
 
     @GetMapping("/add")
     public String addBlog(){
-        return "/editblog";
+        return "editblog";
     }
 
     @PostMapping("/add")
@@ -50,7 +52,7 @@ public class BlogController {
         if(user == null){
             model.addAttribute("msg","用户登录状态异常，请重新登录");
             model.addAttribute("target","/login");
-            return "/common/jump";
+            return "common/jump";
         }
 
         Blog blog = new Blog();
@@ -63,7 +65,7 @@ public class BlogController {
         model.addAttribute("target","/index");
         model.addAttribute("msg","发布成功，正在跳往首页");
         blogService.addBlog(blog);
-        return "/common/jump";
+        return "common/jump";
     }
 
     @GetMapping("/detail/{id}")
@@ -87,10 +89,18 @@ public class BlogController {
         List<Comment> comments = commentService.findCommentsByEntity(ConstantUtil.ENTITY_TYPE_BLOG,blogId,page.getOffset(),page.getLimit());
         List<CommentVo> commentsVo = getCommentsVoFromComments(comments);
         model.addAttribute("commentsVo",commentsVo);
-        return "/detail";
-    }
 
+        //点赞
+        model.addAttribute("likeCount",likeService.findEntityLikeCount(1,blogId));
+        model.addAttribute("likeStatus",likeService.findEntityLikeStatus(user.getId(),1,blogId));
+
+        // 浏览量
+        viewCountService.incrementViewCount(1,blogId);
+
+        return "detail";
+    }
     public List<CommentVo> getCommentsVoFromComments(List<Comment> comments) {
+
         List<CommentVo> commentsVo = new ArrayList<>();
         if (comments != null){
             for (Comment comment:comments){
@@ -100,6 +110,10 @@ public class BlogController {
                 // 作者
                 commentVo.setUser(userService.findUserById(comment.getUserId()));
 
+                // 点赞
+                commentVo.setLikeCount(likeService.findEntityLikeCount(2,comment.getId()));
+                if(loginHold.getUser()!=null)
+                    commentVo.setLikeStatus(likeService.findEntityLikeStatus(loginHold.getUser().getId(),2,comment.getId()));
                 // 回复列表
                 List<Comment> replyList = commentService.findCommentsByEntity(
                         ConstantUtil.ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
@@ -118,10 +132,10 @@ public class BlogController {
                     commentVo.setReplyVoList(replyVoList);
                     commentsVo.add(commentVo);
                 }
-
             }
         }
 
         return commentsVo;
     }
+
 }

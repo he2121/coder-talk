@@ -3,13 +3,11 @@ package com.ganghuan.controller;
 
 import com.ganghuan.pojo.User;
 import com.ganghuan.service.UserService;
-import com.ganghuan.util.ConstantUtil;
-import com.ganghuan.util.JsonUtil;
-import com.ganghuan.util.MailClient;
-import com.ganghuan.util.RandomUtil;
+import com.ganghuan.util.*;
 import com.google.code.kaptcha.Producer;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class LoginController {
@@ -35,10 +34,13 @@ public class LoginController {
     @Autowired
     private Producer kaptchaProducer;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
 
     @GetMapping("/register")
     public String getRegisterPage(){
-        return "/register";
+        return "register";
     }
 
     @PostMapping("/sendCode")
@@ -67,29 +69,37 @@ public class LoginController {
         if (map == null || map.isEmpty()) {
             model.addAttribute("msg", "注册成功, 请登陆");
             model.addAttribute("target", "/login");
-            return "/common/jump";
+            return "common/jump";
         } else {
             model.addAttribute("usernameMsg", map.get("usernameMsg"));
             model.addAttribute("passwordMsg", map.get("passwordMsg"));
             model.addAttribute("emailMsg", map.get("emailMsg"));
             model.addAttribute("codeMsg", map.get("codeMsg"));
-            return "/register";
+            return "register";
         }
     }
 
     @GetMapping("/login")
     public String getLoginPage(){
-        return "/login";
+        return "login";
     }
 
     @PostMapping("/login")
     public String login(String username, String password, String code, boolean rememberme,
-                        Model model, HttpSession session, HttpServletResponse response){
+                        Model model, /**HttpSession session,*/ HttpServletResponse response,
+                        @CookieValue("owner") String owner){
         // 检查验证码
-        String kaptcha = (String) session.getAttribute("kaptcha");
+        //String kaptcha = (String) session.getAttribute("kaptcha");
+        //
+        String kaptcha = null;
+        if (StringUtils.isNotBlank(owner)){
+            String kaptchaKey = RedisUtil.getKaptchaKey(owner);
+            kaptcha = (String) redisTemplate.opsForValue().get(kaptchaKey);
+        }
+
         if (StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg", "验证码不正确!");
-            return "/login";
+            return "login";
         }
 
         // 检查账号,密码
@@ -104,7 +114,7 @@ public class LoginController {
         } else {
             model.addAttribute("usernameMsg", map.get("usernameMsg"));
             model.addAttribute("passwordMsg", map.get("passwordMsg"));
-            return "/login";
+            return "login";
         }
     }
 
@@ -115,14 +125,22 @@ public class LoginController {
     }
 
     @RequestMapping(path = "/kaptcha", method = RequestMethod.GET)
-    public void getKaptcha(HttpServletResponse response, HttpSession session) {
+    public void getKaptcha(HttpServletResponse response) {
+        // Session
         // 生成验证码
         String text = kaptchaProducer.createText();
         BufferedImage image = kaptchaProducer.createImage(text);
 
         // 将验证码存入session
-        session.setAttribute("kaptcha", text);
-
+        //session.setAttribute("kaptcha", text);
+        //redis
+        String owner = RandomUtil.generateUUID();
+        Cookie cookie = new Cookie("owner", owner);
+        cookie.setMaxAge(60);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+        String kaptchaKey = RedisUtil.getKaptchaKey(owner);
+        redisTemplate.opsForValue().set(kaptchaKey,text,60, TimeUnit.SECONDS);
         // 将突图片输出给浏览器
         response.setContentType("image/png");
         try {

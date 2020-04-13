@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>生活点滴</title>
+    <link rel="shortcut icon" href="/images/favicon.ico" />
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://www.layuicdn.com/layui/css/layui.css"  media="all">
+</head>
+
+<body>
+<div th:insert="common/header::header"></div>
+<div class="container-fluid">
+    <div class="col-xs-8">
+        <fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+            <legend>每日一图一话</legend>
+        </fieldset>
+        <ul class="layui-timeline">
+            <li class="layui-timeline-item" th:each="diary:${diarys}">
+                <i class="layui-icon layui-timeline-axis"></i>
+                <div class="layui-timeline-content layui-text">
+                    <h3 class="layui-timeline-title" th:text="${#dates.format(diary.createTime,'yyyy-MM-dd HH:mm:ss')}">8月18日</h3>
+                    <div class="">
+                        <p th:text="${diary.content}"></p>
+                    </div>
+
+                    <div class="">
+                        <img th:src="@{${diary.imageUrl}}" style="width: 250px">
+                    </div>
+                </div>
+                <div class="col-xs-12"><hr></div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-xs-3">
+        <h3 class="text-center">记录今日点滴</h3>
+        <br>
+        <form  method="post" th:action="@{/diary/add}" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="text" class="form-control" name="content" id="content" placeholder="每日一句">
+            </div>
+
+            <div class="form-group">
+                <label for="exampleInputFile">每日一图</label>
+                <input type="file" id="exampleInputFile" name="image">
+            </div>
+            <button type="submit" class="btn btn-default">提交</button>
+        </form>
+
+
+    </div>
+
+
+</div>
+
+
+
+<div th:insert="common/footer::footer"></div>
+<script src="https://www.layuicdn.com/layui/layui.js" charset="utf-8"></script>
+<script src="/js/jquery-3.4.1.js" type="text/javascript"></script>
+<script src="/js/bootstrap.min.js" type="text/javascript"></script>
+</body>
+</html>

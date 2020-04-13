@@ -16,6 +16,9 @@ spring:
       maximum-pool-size: 15
       minimum-idle: 5
       idle-timeout: 30000
+  servlet:
+    multipart:
+      max-file-size: 3MB
   mail:
     host: smtp.qq.com
     port: 465
@@ -29,6 +32,15 @@ spring:
             enable: true
   thymeleaf:
     cache: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      enable-auto-commit: true
+      group-id: test-consumer-group
+      auto-commit-interval: 3000
+    listener:
+      missing-topics-fatal: false
+
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -36,3 +48,55 @@ mybatis:
   configuration:
     use-generated-keys: true
     map-underscore-to-camel-case: true
+
+UPLOAD_PATH: D:/project/upload
+DOMAIN: http://localhost:8080
+
+---
+spring:
+  profiles: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:mysql://localhost:3306/codertalk?characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: He19970216!
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 30000
+  servlet:
+    multipart:
+      max-request-size: 5MB
+  mail:
+    host: smtp.qq.com
+    port: 465
+    username: 1070259395@qq.com
+    password: upyfnnaeqaskbeha
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+  thymeleaf:
+    cache: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      enable-auto-commit: true
+      group-id: test-consumer-group
+      auto-commit-interval: 3000
+    listener:
+      missing-topics-fatal: false
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.ganghuan.pojo
+  configuration:
+    use-generated-keys: true
+    map-underscore-to-camel-case: true
+
+UPLOAD_PATH: /root/upload
+DOMAIN: http://106.53.66.104:8080

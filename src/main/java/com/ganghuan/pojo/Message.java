@@ -7,16 +7,14 @@ import lombok.NoArgsConstructor;
 import java.util.Date;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class Blog {
+@NoArgsConstructor
+public class Message {
     private int id;
-    private int userId;
-    private String title;
+    private int fromId;
+    private int toId;
+    private String conversationId;
     private String content;
     private int status;
     private Date createTime;
-    private Date updateTime;
-    private int commentCount;
-    private double score;
 }

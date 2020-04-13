@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ganghuan.mapper.DiaryMapper">
+
+
+    <select id="selectDiarys" resultType="Diary">
+        select id, user_id, content, image_url, status,create_time
+        from diary
+        where status != 2 and user_id = #{userId}
+        order by create_time desc
+        limit #{offset}, #{limit}
+    </select>
+
+    <select id="selectDiaryRows" resultType="int">
+        select count(id)
+        from diary
+        where status != 2
+        and user_id = #{userId}
+    </select>
+
+    <insert id="insertDiary" parameterType="Blog">
+        insert into `diary`(user_id, content, image_url, create_time)
+        values (#{userId},#{content},#{imageUrl},#{createTime})
+    </insert>
+
+</mapper>

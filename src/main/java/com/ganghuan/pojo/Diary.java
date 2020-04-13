@@ -9,14 +9,11 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Blog {
+public class Diary {
     private int id;
     private int userId;
-    private String title;
     private String content;
+    private String imageUrl;
     private int status;
     private Date createTime;
-    private Date updateTime;
-    private int commentCount;
-    private double score;
 }

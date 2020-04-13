@@ -2,7 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>博客内容</title>
+    <link rel="shortcut icon" href="/images/favicon.ico" />
     <link rel="stylesheet" href="/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/editormd.preview.min.css">
 </head>
@@ -129,26 +130,30 @@
                                         </div>
                                         <div class="col-xs-5">
                                             <ul class="list-inline text-right">
-                                                <li>赞11</li>
+                                                <li>
+                                                    <a href="javascript:" th:onclick="|like(this,2,${commentVo.comment.id},${commentVo.comment.userId},${blog.id})|">
+                                                        <b th:text="${commentVo.likeStatus==1?'已赞':'赞'}">赞</b> <i th:text="${commentVo.likeCount}">11</i>
+                                                    </a>
+                                                </li>
                                                 <li>|</li>
                                                 <li><a th:href="'#huifu'+${stat.count}" data-toggle="collapse" class="text-primary">回复</a></li>
                                             </ul>
                                         </div>
                                         <div class="col-xs-12">
-                                            <div th:id="'huifu'+${stat.count}" class="collapse">
-                                                <form method="post" th:action="@{|/comment/add/${blog.id}|}">
-                                                    <div class="col-xs-9 form-group">
-                                                        <input type="text" class="col-xs-12" name="content" style="height: 30px" th:placeholder="|回复${commentVo.user.username}|" required/>
-                                                        <input type="hidden" name="entityType" value="2">
-                                                        <input type="hidden" name="entityId" th:value="${commentVo.comment.id}">
-                                                        <input type="hidden" name="targetId" th:value="${commentVo.comment.id}">
-                                                    </div>
-                                                    <div class="text-right col-xs-3 form-group" >
-                                                        <button type="submit" class="btn btn-info btn-xs" onclick="">&nbsp;&nbsp;回&nbsp;&nbsp;复&nbsp;&nbsp;</button>
-                                                    </div>
-                                                </form>
-                                            </div>
+                                        <div th:id="'huifu'+${stat.count}" class="collapse">
+                                            <form method="post" th:action="@{|/comment/add/${blog.id}|}">
+                                                <div class="col-xs-9 form-group">
+                                                    <input type="text" class="col-xs-12" name="content" style="height: 30px" th:placeholder="|回复${commentVo.user.username}|" required/>
+                                                    <input type="hidden" name="entityType" value="2">
+                                                    <input type="hidden" name="entityId" th:value="${commentVo.comment.id}">
+                                                    <input type="hidden" name="targetId" th:value="${commentVo.user.id}">
+                                                </div>
+                                                <div class="text-right col-xs-3 form-group" >
+                                                    <button type="submit" class="btn btn-info btn-xs" onclick="">&nbsp;&nbsp;回&nbsp;&nbsp;复&nbsp;&nbsp;</button>
+                                                </div>
+                                            </form>
                                         </div>
+                                    </div>
 
 
                                         <dl th:each="replyVo,replystat:${commentVo.replyVoList}">
@@ -162,9 +167,9 @@
                                                     <span th:text="${replyVo.comment.content}">评论内容</span>
                                                     <div class="row">
                                                         <i class="col-xs-10">2019-04-15 15:32:18</i>
-                                                        <span class="col-xs-2 text-left"><a th:href="'#huifu-'+${replystat.count}" data-toggle="collapse" class="text-primary">回复</a></span>
+                                                        <span class="col-xs-2 text-left"><a th:href="'#huifu-'+${stat.count}+${replystat.count}" data-toggle="collapse" class="text-primary">回复</a></span>
                                                     </div>
-                                                    <div th:id="'huifu-'+${replystat.count}" class="collapse">
+                                                    <div th:id="'huifu-'+${stat.count}+${replystat.count}" class="collapse">
                                                         <form method="post" th:action="@{|/comment/add/${blog.id}|}">
                                                             <div class="col-xs-9 form-group">
                                                                 <input type="text" class="col-xs-12" name="content" style="height: 30px" th:placeholder="|回复${replyVo.user.username}|" required/>
@@ -243,6 +248,22 @@
             // htmlDecode : "style,script,iframe",  // Note: If enabled, you should filter some dangerous HTML tags for website security.
         });
     });
+
+    function like(btn, entityType, entityId,entityUserId,blogId) {
+        $.post(
+           "/like",
+            {"entityType":entityType,"entityId":entityId,"entityUserId":entityUserId,"blogId":blogId},
+            function(data) {
+                data = $.parseJSON(data);
+                if(data.code == 0) {
+                    $(btn).children("i").text(data.likeCount);
+                    $(btn).children("b").text(data.likeStatus==1?'已赞':"赞");
+                } else {
+                    alert(data.msg);
+                }
+            }
+        );
+    }
 </script>
 </body>
 </html>

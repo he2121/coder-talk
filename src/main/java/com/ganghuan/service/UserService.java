@@ -5,13 +5,17 @@ import com.ganghuan.mapper.UserMapper;
 import com.ganghuan.pojo.LoginTicket;
 import com.ganghuan.pojo.User;
 import com.ganghuan.util.RandomUtil;
+import com.ganghuan.util.RedisUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
@@ -19,15 +23,40 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+//    @Autowired
+//    private LoginTicketMapper loginTicketMapper;
     @Autowired
-    private LoginTicketMapper loginTicketMapper;
+    private RedisTemplate redisTemplate;
 
     public User findUserById(int id){
-        return userMapper.selectById(id);
+        //return userMapper.selectById(id);
+        User user = getCacheId(id);
+        if (user == null) user = initCache(id);
+        return user;
+    }
+
+    private User getCacheId(int userId){
+        String userKey = RedisUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(userKey);
+    }
+
+    private User initCache(int userId){
+        User user = userMapper.selectById(userId);
+        String userKey = RedisUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(userKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+    private void clearCache(int userId){
+        String userKey = RedisUtil.getUserKey(userId);
+        redisTemplate.delete(userKey);
     }
 
     public User findUserByEmail(String email) {
         return userMapper.selectByEmail(email);
+    }
+
+    public User findUserByName(String name){
+        return userMapper.selectByName(name);
     }
 
 
@@ -119,22 +148,33 @@ public class UserService {
         loginTicket.setTicket(RandomUtil.generateUUID());
         loginTicket.setStatus(0);
         loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
-        loginTicketMapper.insertLoginTicket(loginTicket);
-
+        //loginTicketMapper.insertLoginTicket(loginTicket);
+        String ticketKey = RedisUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(ticketKey,loginTicket);
         map.put("ticket", loginTicket.getTicket());
         return map;
     }
 
     public void logout(String ticket) {
-        loginTicketMapper.updateStatus(ticket,1);
+        //loginTicketMapper.updateStatus(ticket,1);
+        String ticketKey = RedisUtil.getTicketKey(ticket);
+        LoginTicket o = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        o.setStatus(1);
+        redisTemplate.opsForValue().set(ticketKey,o);
+
     }
 
     public LoginTicket findLoginTicket(String ticket) {
-        return loginTicketMapper.selectByTicket(ticket);
+        //return loginTicketMapper.selectByTicket(ticket);
+        String ticketKey = RedisUtil.getTicketKey(ticket);
+        return (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
     }
 
     public int updateHeader(int userId, String headerUrl) {
-        return userMapper.updateHeader(userId, headerUrl);
+        //return userMapper.updateHeader(userId, headerUrl);
+        int rows = userMapper.updateHeader(userId, headerUrl);
+        clearCache(userId);
+        return rows;
     }
 }
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>猿圈说</title>
+    <link rel="shortcut icon" href="/images/favicon.ico" />
     <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
 
@@ -18,16 +19,16 @@
 
     <div class="container-fluid">
         <ul class="nav nav-tabs">
-            <li role="presentation"><a th:href="@{/}">广场</a></li>
-            <li role="presentation" th:if="${loginUser != null}"><a th:href="@{|/${loginUser.id}|}">我的博客</a></li>
-            <li role="presentation" th:if="${loginUser != null}"><a href="#">朋友圈</a></li>
+            <li class=""><a th:href="@{/}">广场</a></li>
+            <li class="" th:if="${loginUser != null}"><a th:href="@{|/${loginUser.id}|}">我的博客</a></li>
+            <li role="" th:if="${loginUser != null}"><a th:href="@{'/circle/'+${loginUser.id}}">朋友圈</a></li>
         </ul>
 
         <div class="row">
             <div class="col-lg-9 col-md-9 col-sm-9 col-xs-12">
                 <dl class="dl-horizontal" th:each="map:${maps}">
                     <dt>
-                        <a href="site/profile.html" >
+                        <a th:href="@{'/user/profile/'+${map.blog.userId}}" >
                             <img th:src="@{${map.headerUrl}}" class="img-rounded " alt="用户头像" style="width:80px;height:80px; margin: fill">
                         </a>
                     </dt>
@@ -46,8 +47,8 @@
                                 </div>
                                 <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 text-right">
                                     <ul class="list-inline">
-                                        <li>浏览量 <span th:text="${map.blog.viewCount}">7</span></li>
-                                        <li>赞 11</li>
+                                        <li>浏览量 <span th:text="${map.viewCount}">10000</span></li>
+                                        <li >赞 <span th:text="${map.likeCount}">1000</span></li>
                                         <li>|</li>
                                         <li>回帖 <span th:text="${map.blog.commentCount}">7</span></li>
                                     </ul>
@@ -80,15 +81,11 @@
             </div>
 
             <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
-
+                <h3> 热帖排行</h3>
 
                     <div >
-                        <ol class="list-group">
-                            <li class="list-group-item">Cras justo odio</li>
-                            <li class="list-group-item">Dapibus ac facilisis in</li>
-                            <li class="list-group-item">Morbi leo risus</li>
-                            <li class="list-group-item">Porta ac consectetur ac</li>
-                            <li class="list-group-item">Vestibulum at eros</li>
+                        <ol class="list-group" th:each="blog,blogStat:${hotBlogs}">
+                            <li class="list-group-item"><a th:href="@{'/blog/detail/'+${blog.id}}" th:text="${blogStat.count}+' '+${blog.title}"></a></li>
                         </ol>
                     </div>
             </div>

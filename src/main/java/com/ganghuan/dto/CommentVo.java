@@ -18,6 +18,10 @@ public class CommentVo {
     private Comment comment;
     private User user;
     private List<CommentVo> replyVoList;
-    //用于楼中楼
+    //用于楼中楼 评论无
     private String targetName;
+
+    // 点赞状态 回复无
+    private long likeCount;
+    private int likeStatus;
 }
