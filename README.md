@@ -18,6 +18,10 @@
 7. 看朋友圈帖子
 8. 系统通知与朋友私信（kafka）
 
+待完成的工作：
+* 利用AOP完成全局异常捕获和错误页面跳转
+* 利用SpringSecurity完成页面权限管理
+
 ## 如何部署
 1. git clone
 2. 修改application.yml 配置文件（数据库连接，mail配置，kafka配置，上传路径等）
