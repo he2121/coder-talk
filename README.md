@@ -21,6 +21,7 @@
 待完成的工作：
 * 利用AOP完成全局异常捕获和错误页面跳转
 * 利用SpringSecurity完成页面权限管理
+* docker容器化部署
 
 ## 如何部署
 1. git clone
