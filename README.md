@@ -2,7 +2,7 @@
 ## 项目背景
 一个技术人员记录markdown博客，讨论的论坛项目。 可用于学习Spring框架，以及一个java web项目的完整开发流程
 ## 部署网站
-[heganghuan.cn](http://heganghuan.cn) 使用guest，guest体验完整功能！
+[heganghuan.cn](http://heganghuan.cn) 使用guest，guest登录体验完整功能！
 ## 技术栈
 后端：SpringBoot + Mybatis + Mysql + Redis + kafka
 
